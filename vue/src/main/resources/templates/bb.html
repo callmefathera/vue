@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="/webjars/vue/2.6.10/dist/vue.min.js"></script>
+    <script src="/webjars/axios/0.19.0/dist/axios.min.js"></script>
+    <script src="/webjars/jquery/3.4.1/jquery.min.js"></script>
+    <style>
+
+        #app{
+            width:600px;
+            margin:10px auto;
+        }
+        .tb{
+            border-collapse:collapse;
+            width: 100%;
+        }
+        .tb th{
+            background-color: #0094ff;
+            color:white;
+        }
+
+        .tb td,.tb th{
+            padding:5px;
+            border:1px solid black;
+            text-align: center;
+        }
+
+        .add{
+            padding: 5px;
+            border:1px solid black;
+            margin-bottom: 10px;
+        }
+        .update{
+            padding: 5px;
+            border:1px solid black;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+<div id="app">
+    <div class="update" id="updateList" v-if="isUpdate">
+        <input type="hidden" name="stuId"   v-model="stuUpdate.stuId" />
+        name:
+        <input type="text"  name="stuName"  v-model="stuUpdate.stuName" />
+
+        age:
+        <input type="text"  name="stuAge"  v-model="stuUpdate.stuAge" />
+
+        <button type="button"  @click="update(stuUpdate)">修改</button>
+        <!--        <button type="button"  @click="quxiao">取消</button>-->
+    </div>
+    <div class="add" id="addList" v-if="isAdd">
+        <form>
+            name:<input type="text" name="stuName" v-model="stuName">
+
+            age:<input type="text" name="stuAge" v-model="stuAge">
+
+            <input type="button"  @click="addUser()" value="增加">
+        </form>
+    </div>
+    <table class="tb" border="1" id="listTable" v-if="isList">
+        <tr>
+            <td>id</td>
+            <td>name</td>
+            <td>age</td>
+            <td>操作</td>
+        </tr>
+        <tr v-for="stu in stus">
+            <td>{{stu.stuId}}</td>
+            <td>{{stu.stuName}}</td>
+            <td>{{stu.stuAge}}</td>
+            <td>
+                <a href="#nowhere" @click="edit(stu)">编辑</a>
+                <a href="#nowhere" @click="addd(stu)">增加</a>
+                <a href="#nowhere" @click="deleteUser(stu.stuId)">删除</a>
+            </td>
+        </tr>
+    </table>
+</div>
+
+
+<script>
+    var data = {
+        stus:[
+        ],
+        stuId:'',
+        stuName:'',
+        stuAge:'',
+        stuUpdate:{
+
+        },
+        isUpdate:false,
+        isList:true,
+        isAdd:false
+    };
+    new Vue({
+        el: '#app',
+        data: data,
+        mounted:function(){
+            this.findAll();
+        },
+        methods: {
+            findAll:function () {
+                axios.get('/aaa/findAll').then(response => (
+                    this.stus = response.data)).catch(function (error) { // 请求失败处理
+                    console.log(error);
+                });
+            },
+            deleteUser:function (id) {
+                axios.get('/aaa/delete', {
+                    params :{
+                        'id':id
+                    }
+                }).then(response => (
+                    this.findAll()
+                )
+            )
+            },
+            addUser:function () {
+                axios.post('/aaa/add?stuName='+this.stuName+'&stuAge='+this.stuAge)
+                    .then(response => (
+                    this.findAll(),
+                this.isAdd = false,
+                    this.isList = true
+                )
+            )
+            },
+            edit: function (stu) {
+                this.isUpdate = true;
+                this.isList = false;
+                this.stuUpdate = stu;
+            },
+            addd: function (stu) {
+                this.isUpdate = false;
+                this.isList = false;
+                this.isAdd=true;
+            },
+            update:function (stuUpdate) {
+                axios.post('/aaa/update?stuId='+stuUpdate.stuId+'&stuName='+stuUpdate.stuName+'&stuAge='+stuUpdate.stuAge)
+                    .then(response => (
+                    this.findAll(),
+                        this.isUpdate = false,
+                        this.isList = true
+                )
+            )
+            }
+
+        },
+
+    })
+</script>
+</body>
+</html>
